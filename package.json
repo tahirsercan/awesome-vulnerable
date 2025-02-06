@@ -1,0 +1,41 @@
+// package.json (or use npm init to create one)
+{
+  "name": "vulnerable-app",
+  "version": "1.0.0",
+  "description": "Demonstrates vulnerable dependencies",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "4.17.1", // Older version known to have vulnerabilities
+    "lodash": "4.17.21", //  lodash is generally safe, but pinning to a specific version can sometimes introduce vulnerabilities if that version has a known issue.  For demonstration, we're including it.
+    "cross-env": "7.0.3" // Older version, just for example.
+  }
+}
+
+// index.js
+const express = require('express');
+const _ = require('lodash'); // Import lodash
+const crossEnv = require('cross-env');
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Simulate a vulnerable function using lodash (demonstration)
+function vulnerableFunction(userInput) {
+  // In a real app, be VERY careful about using user input directly in functions like _.template
+  // This is highly vulnerable to Server-Side Template Injection (SSTI)
+  const compiled = _.template(userInput); 
+  return compiled(); // Executes the template string as code.
+}
+
+app.get('/', (req, res) => {
+    res.send('Hello, World!');
+});
+
+app.get('/vulnerable', (req, res) => {
+  const userInput = req.query.input; // Get user input from query parameter
+  if (userInput) {
+      try {
+        const output = vulnerableFunction(userInput);
